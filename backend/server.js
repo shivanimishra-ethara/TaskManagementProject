@@ -29,17 +29,13 @@ app.use((req, res) => {
   res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
-const { MongoMemoryServer } = require('mongodb-memory-server');
-
 const startServer = async () => {
   try {
-    let mongoUri = process.env.MONGO_URI;
+    const mongoUri = process.env.MONGO_URI;
 
-    // Use in-memory DB if trying to use localhost but no DB is running locally
-    if (!mongoUri || mongoUri.includes('127.0.0.1') || mongoUri.includes('localhost')) {
-      const mongod = await MongoMemoryServer.create();
-      mongoUri = mongod.getUri();
-      console.log('Using In-Memory MongoDB for local development');
+    if (!mongoUri) {
+      console.error('MONGO_URI environment variable is not set');
+      process.exit(1);
     }
 
     await mongoose.connect(mongoUri);
@@ -48,6 +44,7 @@ const startServer = async () => {
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   } catch (err) {
     console.error('MongoDB connection error:', err);
+    process.exit(1);
   }
 };
 
